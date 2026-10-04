@@ -17,6 +17,7 @@ import { SidebarProvider } from "@/components/sidebar-state";
 import { SidebarAside, MobileMenuButton } from "@/components/sidebar-aside";
 import { SidebarResizeBoundary } from "@/components/sidebar-resize-boundary";
 import { ShortcutsProvider } from "@/components/shortcuts";
+import { DashboardToaster } from "@/components/dashboard-toaster";
 import clsx from "clsx";
 import { useDashboardState } from "./dashboard-state";
 import { useAssistantAvailability } from "./use-assistant-availability";
@@ -77,6 +78,7 @@ export default function DashboardLayout({
                     </div>
                   </div>
                   <FloatingComposer />
+                  <DashboardToaster />
                 </div>
               </ShortcutsProvider>
             </MailSearchProvider>

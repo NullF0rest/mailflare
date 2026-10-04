@@ -2,6 +2,7 @@ import type { LucideIcon } from "lucide-react";
 import type { Dispatch, ReactNode, SetStateAction } from "react";
 import type { Message, MessageFolder } from "@/hooks/types";
 import type { BulkMessageAction } from "@/app/api/messages/bulk/types";
+import type { MessageRowMenuAction, MoveFolderTarget } from "./message-context-menu-types";
 
 export type MessageFolderConfig = {
 	folder: MessageFolder;
@@ -23,11 +24,16 @@ export type MessageListRowProps = {
 	compact?: boolean;
 	currentAccountName?: string;
 	onSelectedChange: (messageId: string, selected: boolean) => void;
-	onMessageAction: (messageId: string, action: RowMessageAction) => Promise<void>;
+	onMessageAction: (messageId: string, action: RowMessageAction, folder?: MoveFolderTarget) => Promise<void>;
 	dragMessageIds: string[];
+	/** Selection on the page, for the right-click menu of a selected row. */
+	selectionCount: number;
+	hasUnreadSelection: boolean;
+	onSelectionAction: MessageRowMenuAction;
+	onClearSelection: () => void;
 };
 
-export type RowMessageAction = "archive" | "trash" | "read" | "unread";
+export type RowMessageAction = BulkMessageAction;
 
 export type MessageListRowActionsProps = {
 	message: Message;
