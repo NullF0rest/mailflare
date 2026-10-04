@@ -5,6 +5,7 @@ import { sidebarBootstrapScript } from "@/components/sidebar-state-utils";
 import { themeBootstrapScript } from "@/components/theme-utils";
 import { DEFAULT_APP_DESCRIPTION, DEFAULT_APP_NAME } from "@/lib/branding/defaults";
 import { readBrandEnv } from "@/lib/branding/env";
+import { getBranding } from "@/lib/branding/service";
 import { getEnv } from "@/lib/cloudflare";
 import "./globals.css";
 
@@ -38,10 +39,15 @@ const baseMetadata: Metadata = {
 	},
 };
 
-// Pillcrow fork: the served title is the install's BRAND_NAME, so a link preview names the
-// client's app before the branding provider runs.
-export function generateMetadata(): Metadata {
-	return { ...baseMetadata, title: readBrandEnv(getEnv()).name ?? DEFAULT_APP_NAME };
+// Pillcrow fork: the served title is the install's name, so a link preview names the client's
+// app before the branding provider runs. Same precedence as everywhere else: Admin → Branding,
+// then BRAND_NAME, then the default.
+export async function generateMetadata(): Promise<Metadata> {
+	const env = getEnv();
+	const title = await getBranding(env)
+		.then((branding) => branding.appName)
+		.catch(() => readBrandEnv(env).name ?? DEFAULT_APP_NAME);
+	return { ...baseMetadata, title };
 }
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
