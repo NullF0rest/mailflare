@@ -4,7 +4,7 @@
 
 Pillcrow's fork of [Mailflare](https://github.com/hieunc229/mailflare), used to run branded inboxes on our clients' own domains. Each client gets their own install in their own Cloudflare account. It shows Pillcrow branding until an admin sets the client's name and icon under **Admin → Branding**.
 
-[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/NullF0rest/pillcrow-mail)
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/NullF0rest/mailflare)
 
 ### A client's install
 

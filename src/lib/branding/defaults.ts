@@ -7,7 +7,7 @@ export const DEFAULT_APP_DESCRIPTION = "Email by Pillcrow";
 export const UPSTREAM_APP_NAME = "Mailflare";
 
 // AGPL-3.0 §13: people using a modified copy over the network are offered its source.
-export const SOURCE_URL = "https://github.com/NullF0rest/pillcrow-mail";
+export const SOURCE_URL = "https://github.com/NullF0rest/mailflare";
 export const UPSTREAM_URL = "https://github.com/hieunc229/mailflare";
 export const PILLCROW_URL = "https://pillcrow.com";
 
