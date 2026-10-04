@@ -62,3 +62,6 @@ mailflare-landing
 .agents
 skills-lock.json
 /dist/
+
+# Pillcrow fork: per-client Wrangler configs hold account ids
+/wrangler.client-*.jsonc

@@ -13,6 +13,5 @@ export const adminPageTitles: Record<string, string> = {
 	"/activity": "Activity",
 	"/backups": "Backups",
 	"/branding": "Branding",
-	"/licenses": "Licenses",
 	"/ai-usage": "AI usage",
 };

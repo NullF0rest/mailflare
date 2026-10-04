@@ -8,6 +8,8 @@ export default defineConfig({
 	plugins: [
 		vinext({ images: { optimizer: imagesOptimizer() } }),
 		cloudflare({
+			// Pillcrow fork: WRANGLER_CONFIG=clients/<slug>.wrangler.jsonc builds one client's install.
+			configPath: process.env.WRANGLER_CONFIG || "./wrangler.jsonc",
 			remoteBindings: process.env.CLOUDFLARE_REMOTE_BINDINGS === "true",
 			viteEnvironment: { name: "rsc", childEnvironments: ["ssr"] },
 		}),

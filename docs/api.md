@@ -72,7 +72,7 @@ Open **Booking** to create booking events: a name, link (slug), duration, locati
 
 A guest picks a slot, enters a name, email, optional extra guest emails and notes, and the booking is added to the host's calendar with the guest as attendee. Slots come from the host's availability: every 15 minutes inside the allowed ranges, up to 60 days ahead, at least an hour from now, and only where the host's calendar is free, repeating events included. The booking is inserted in one statement that re-checks for conflicts, so two guests cannot take the same slot. Mailflare does not email the guest a confirmation; the booking page confirms on screen.
 
-On a Team license an administrator can add other users as hosts of a booking event. The booking is created on every host's calendar, and a slot is offered only when all hosts are free.
+An administrator can add other users as hosts of a booking event. The booking is created on every host's calendar, and a slot is offered only when all hosts are free.
 
 | Mailflare route | Purpose |
 | --- | --- |
@@ -85,7 +85,7 @@ On a Team license an administrator can add other users as hosts of a booking eve
 
 ## Account and mailbox management
 
-Admin > API keys can also grant the `accounts` and `mailboxes` scopes independently. These routes use `Authorization: Bearer <key>` and require the key owner to retain the admin role. Account management requires a Team license; creating a shared mailbox also requires a Team license. Each key can access only accounts created by its owner and mailboxes owned by those accounts or the admin.
+Admin > API keys can also grant the `accounts` and `mailboxes` scopes independently. These routes use `Authorization: Bearer <key>` and require the key owner to retain the admin role. Each key can access only accounts created by its owner and mailboxes owned by those accounts or the admin.
 
 Admin API keys cannot read or send mail. Enable **Allow MCP access** when creating an admin key to use its selected `domains`, `accounts`, and `mailboxes` permissions through `/mcp`. The `manage_domains`, `manage_accounts`, and `manage_mailboxes` tools expose the corresponding management actions below. Admin MCP keys do not expose mail tools. Use Settings > API keys for mail and mail MCP access.
 

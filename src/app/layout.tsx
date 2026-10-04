@@ -3,6 +3,10 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { Providers } from "@/components/providers";
 import { sidebarBootstrapScript } from "@/components/sidebar-state-utils";
 import { themeBootstrapScript } from "@/components/theme-utils";
+import { DEFAULT_APP_DESCRIPTION, DEFAULT_APP_NAME } from "@/lib/branding/defaults";
+import { readBrandEnv } from "@/lib/branding/env";
+import { getBranding } from "@/lib/branding/service";
+import { getEnv } from "@/lib/cloudflare";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -15,9 +19,9 @@ const geistMono = Geist_Mono({
 	subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-	title: "Mailflare",
-	description: "Multi-tenant email on Cloudflare",
+const baseMetadata: Metadata = {
+	title: DEFAULT_APP_NAME,
+	description: DEFAULT_APP_DESCRIPTION,
 	icons: { icon: "/api/branding/icon" },
 	robots: {
 		index: false,
@@ -35,6 +39,17 @@ export const metadata: Metadata = {
 	},
 };
 
+// Pillcrow fork: the served title is the install's name, so a link preview names the client's
+// app before the branding provider runs. Same precedence as everywhere else: Admin → Branding,
+// then BRAND_NAME, then the default.
+export async function generateMetadata(): Promise<Metadata> {
+	const env = getEnv();
+	const title = await getBranding(env)
+		.then((branding) => branding.appName)
+		.catch(() => readBrandEnv(env).name ?? DEFAULT_APP_NAME);
+	return { ...baseMetadata, title };
+}
+
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
 	return (
 		<html lang="en" suppressHydrationWarning>
@@ -42,6 +57,8 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
 				<script dangerouslySetInnerHTML={{ __html: sidebarBootstrapScript }} />
 				<script dangerouslySetInnerHTML={{ __html: themeBootstrapScript }} />
 				<link rel="icon" href="/api/branding/icon"></link>
+				{/* Pillcrow fork: accent and ground colours from the BRAND_* env vars. */}
+				<link rel="stylesheet" href="/api/branding/theme" />
 			</head>
 			<body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
 				<Providers>{children}</Providers>

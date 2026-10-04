@@ -4,6 +4,7 @@ import packageJson from "../../package.json";
 import { useSidebar } from "./sidebar-state";
 import { useShortcuts } from "./shortcuts";
 import { Keyboard } from "lucide-react";
+import { PILLCROW_URL, SOURCE_URL } from "@/lib/branding/defaults";
 
 export function SidebarFooter() {
 	const { minimal } = useSidebar();
@@ -29,13 +30,13 @@ export function SidebarFooter() {
       )}
       <p className="px-1 text-[11px] text-neutral-400">
         Powered by{" "}
-        <a
-          href={`https://mailflare.co/?ref=${typeof window !== "undefined" ? location.hostname : ""}&v=${packageJson.version}`}
-          target="_blank"
-          className="hover:underline text-neutral-500"
-          rel="noreferrer"
-        >
-          Mailflare v{packageJson.version}
+        <a href={PILLCROW_URL} target="_blank" className="hover:underline text-neutral-500" rel="noreferrer">
+          Pillcrow
+        </a>
+        {" · "}built on Mailflare v{packageJson.version}
+        {" · "}
+        <a href={SOURCE_URL} target="_blank" className="hover:underline text-neutral-500" rel="noreferrer">
+          Source
         </a>
       </p>
     </div>

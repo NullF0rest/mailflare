@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import type { ReactElement } from "react";
+import { useRouter } from "next/navigation";
 import type { MouseEvent } from "react";
 import { Archive, ChevronLeft, ChevronRight, ListFilter, Mail, MailOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -16,9 +18,14 @@ import { useMessages } from "@/hooks/use-messages";
 import type { BulkMessageAction } from "@/app/api/messages/bulk/types";
 import type { Message } from "@/hooks/types";
 import { setMessageDragData } from "@/lib/messages/drag-utils";
+import { primeMessageDetail } from "@/lib/messages/detail-cache";
 import { BulkMessageToolbar } from "./bulk-message-toolbar";
 import { SwipeableRow } from "./swipeable-row";
 import { MessageListRowActions } from "./message-list-row-actions";
+import { MessageRowContextMenu } from "./message-context-menu";
+import type { MoveFolderTarget } from "./message-context-menu-types";
+import { announceMessageMove, isMoveAction } from "./message-undo-utils";
+import { getCachedMailboxFolders } from "./use-mailbox-folders";
 import { dispatchMessageCountsDelta, toggleMessageStar } from "./message-list-row-actions-utils";
 import { MessageNavigationProgress, useMessageNavigation } from "./message-navigation";
 import { rememberOpenedUnreadMessage } from "./message-detail-navigation-utils";
@@ -49,6 +56,10 @@ function MessageListRow({
 	onSelectedChange,
 	onMessageAction,
 	dragMessageIds,
+	selectionCount,
+	hasUnreadSelection,
+	onSelectionAction,
+	onClearSelection,
 }: MessageListRowProps) {
 	const Icon = config.icon;
 	const [read, setRead] = useState(message.read);
@@ -64,8 +75,9 @@ function MessageListRow({
 	const preview = getMessagePreview(rowMessage, config.folder);
 	const href = `${config.hrefPrefix}/${message.id}`;
 	const navigation = useMessageNavigation(href, rowMessage);
+	const router = useRouter();
 
-	async function runRowAction(action: RowMessageAction) {
+	async function runRowAction(action: RowMessageAction, folder?: MoveFolderTarget) {
 		const previousRead = read;
 		const previousThreadUnread = threadUnread;
 		const unreadDelta = action === "read" ? -1 : action === "unread" ? 1 : 0;
@@ -78,7 +90,7 @@ function MessageListRow({
 		}
 		if (unreadDelta) dispatchMessageCountsDelta({ inboxUnreadDelta: unreadDelta });
 		try {
-			await onMessageAction(message.id, action);
+			await onMessageAction(message.id, action, folder);
 		} catch (error) {
 			if (action === "read" || action === "unread") {
 				setRead(previousRead);
@@ -92,7 +104,12 @@ function MessageListRow({
 	const swipeable = compact && (config.folder === "inbox" || config.folder === "snoozed") && message.direction === "inbound";
 
 	function onMessageNavigate(event: MouseEvent<HTMLAnchorElement>) {
-		if (!read && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) {
+		if (!event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) markOpenedRead();
+		navigation.onNavigate(event, !read);
+	}
+
+	function markOpenedRead() {
+		if (!read) {
 			rememberOpenedUnreadMessage(message.id);
 			const previousThreadUnread = threadUnread;
 			setRead(true);
@@ -104,7 +121,35 @@ function MessageListRow({
 				if (message.direction === "inbound") dispatchMessageCountsDelta({ inboxUnreadDelta: 1 });
 			});
 		}
-		navigation.onNavigate(event, !read);
+	}
+
+	function toggleStar() {
+		void toggleMessageStar(message.id).then((result) => setStarred(result.starred)).catch(() => undefined);
+	}
+
+	function withContextMenu(row: ReactElement) {
+		return (
+			<MessageRowContextMenu
+				message={rowMessage}
+				config={config}
+				href={href}
+				selected={selected}
+				selectionCount={selectionCount}
+				hasUnreadSelection={hasUnreadSelection}
+				onOpen={() => {
+					markOpenedRead();
+					primeMessageDetail({ ...rowMessage, read: true });
+					router.push(href);
+				}}
+				onAction={runRowAction}
+				onSelectionAction={onSelectionAction}
+				onToggleStar={toggleStar}
+				onSelectedChange={(next) => onSelectedChange(message.id, next)}
+				onClearSelection={onClearSelection}
+			>
+				{row}
+			</MessageRowContextMenu>
+		);
 	}
 
 	if (compact && config.folder !== "drafts") {
@@ -115,7 +160,7 @@ function MessageListRow({
 					: selected
 						? "border-l-transparent bg-neutral-50"
 						: "border-l-transparent hover:bg-neutral-50"
-					} ${draggable ? "cursor-grab active:cursor-grabbing" : ""}`}
+					} data-[state=open]:bg-neutral-100 ${draggable ? "cursor-grab active:cursor-grabbing" : ""}`}
 				draggable={draggable}
 				onDragStart={(event) => {
 					if (!draggable) return;
@@ -154,7 +199,7 @@ function MessageListRow({
 				</Link>
 			</div>
 		);
-		if (!swipeable) return compactRow;
+		if (!swipeable) return withContextMenu(compactRow);
 		return (
 			<SwipeableRow
 				startAction={{
@@ -170,13 +215,13 @@ function MessageListRow({
 					onTrigger: () => void runRowAction("archive").catch(() => undefined),
 				}}
 			>
-				{compactRow}
+				{withContextMenu(compactRow)}
 			</SwipeableRow>
 		);
 	}
 
 	const className =
-		`group relative grid min-h-12 w-full grid-cols-[24px_32px_minmax(160px,260px)_1fr_auto] items-center gap-3 px-6 text-left text-sm hover:z-10 hover:bg-[#f2f6fc] hover:shadow-sm ${active || selected ? "bg-blue-50" : ""
+		`group relative grid min-h-12 w-full grid-cols-[24px_32px_minmax(160px,260px)_1fr_auto] items-center gap-3 px-6 text-left text-sm hover:z-10 hover:bg-[#f2f6fc] hover:shadow-sm data-[state=open]:z-10 data-[state=open]:bg-neutral-100 data-[state=open]:shadow-sm ${active || selected ? "bg-blue-50" : ""
 		} ${draggable ? "cursor-grab active:cursor-grabbing" : ""}`;
 	const content = (
 		<>
@@ -189,7 +234,7 @@ function MessageListRow({
 						onClick={(event) => {
 							event.preventDefault();
 							event.stopPropagation();
-							void toggleMessageStar(message.id).then((result) => setStarred(result.starred));
+							toggleStar();
 						}}
 						aria-label={starred ? "Starred" : "Not starred"}
 					>
@@ -224,7 +269,7 @@ function MessageListRow({
 	);
 
 	if (config.folder === "drafts") {
-		return (
+		return withContextMenu(
 			<div className={className}>
 				<Checkbox
 					checked={selected}
@@ -239,7 +284,7 @@ function MessageListRow({
 		);
 	}
 
-	return (
+	return withContextMenu(
 		<div
 			className={className}
 			draggable={draggable}
@@ -364,7 +409,16 @@ export function MessageFolderPage({
 		});
 	}
 
-	async function runSelectedAction(action: BulkMessageAction, folderId?: string) {
+	async function runRowMessageAction(messageId: string, action: BulkMessageAction, folder?: MoveFolderTarget) {
+		const messageIds = expandSelectedIds([messageId]);
+		const rows = messages.filter((message) => message.id === messageId);
+		await runBulkMessageAction(messageIds, action, action !== "read" && action !== "unread", folder?.id);
+		if (!isMoveAction(action)) return;
+		setSelectedMessages((current) => current.filter((message) => message.id !== messageId));
+		announceMessageMove({ messageIds, rows, action, folderName: folder?.name, grouped });
+	}
+
+	async function runSelectedAction(action: BulkMessageAction, folderId?: string, folderName?: string) {
 		if (selectedIds.length === 0) return;
 
 		setPendingBulkAction(true);
@@ -383,9 +437,18 @@ export function MessageFolderPage({
 				.reduce((total, message) => total + (readValue ? (message.read ? 0 : -1) : (message.read ? 1 : 0)), 0);
 			if (inboxUnreadDelta) dispatchMessageCountsDelta({ inboxUnreadDelta });
 		}
+		const messageIds = expandSelectedIds(selectedIds);
+		const rows = previousMessages.filter((message) => selectedIds.includes(message.id));
 		try {
-			await runBulkMessageAction(expandSelectedIds(selectedIds), action, true, folderId);
+			await runBulkMessageAction(messageIds, action, true, folderId);
 			setSelectedMessages([]);
+			announceMessageMove({
+				messageIds,
+				rows,
+				action,
+				folderName: folderName ?? getCachedMailboxFolders(selectedMailbox?.id).find((folder) => folder.id === folderId)?.name,
+				grouped,
+			});
 		} catch (error) {
 			if (readValue !== null) {
 				updateMessages(previousMessages);
@@ -488,10 +551,12 @@ export function MessageFolderPage({
 						compact={compact || isMobile}
 						currentAccountName={currentAccountName}
 						onSelectedChange={updateSelectedMessage}
-						onMessageAction={(messageId, action) =>
-							runBulkMessageAction(expandSelectedIds([messageId]), action, action !== "read" && action !== "unread")
-						}
+						onMessageAction={runRowMessageAction}
 						dragMessageIds={expandSelectedIds(selectedIds.includes(message.id) ? selectedIds : [message.id])}
+						selectionCount={selectedIds.length}
+						hasUnreadSelection={hasUnreadSelection}
+						onSelectionAction={(action, folder) => runSelectedAction(action, folder?.id, folder?.name)}
+						onClearSelection={() => setSelectedMessages([])}
 					/>
 				))}
 				{!isLoading && messages.length === 0 && (

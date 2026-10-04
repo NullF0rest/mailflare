@@ -52,6 +52,24 @@
       },
       "CF_API_KEY": {
         "description": "Legacy Global API Key auth only. Prefer `CF_TOKEN` for new deployments."
+      },
+      "BRAND_NAME": {
+        "description": "Pillcrow Mail: the name this install shows (for example \"LEON Mail\"). Leave blank for Pillcrow Mail. An admin can still override it under Admin > Branding."
+      },
+      "BRAND_ICON_URL": {
+        "description": "Pillcrow Mail: an https URL to a square PNG, SVG or WebP icon (96px or larger). Leave blank for the Pillcrow icon. An icon uploaded under Admin > Branding wins."
+      },
+      "BRAND_ACCENT": {
+        "description": "Pillcrow Mail: accent hex colour for buttons, links and highlights in the light theme, for example #5640aa. Also used in dark mode unless BRAND_ACCENT_DARK is set."
+      },
+      "BRAND_ACCENT_DARK": {
+        "description": "Pillcrow Mail: accent hex colour for the dark theme. Pick a lighter shade than BRAND_ACCENT, for example #a899e3."
+      },
+      "BRAND_BACKGROUND": {
+        "description": "Pillcrow Mail: optional page background hex colour in the light theme."
+      },
+      "BRAND_BACKGROUND_DARK": {
+        "description": "Pillcrow Mail: optional page background hex colour in the dark theme."
       }
     }
   },
@@ -60,6 +78,7 @@
     "@ai-sdk/openai-compatible": "^3.0.55",
     "@ai-sdk/react": "^4.0.116",
     "@modelcontextprotocol/server": "^2.1.0",
+    "@radix-ui/react-context-menu": "^2.2.16",
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-dropdown-menu": "^2.1.16",
     "@radix-ui/react-label": "^2.1.8",

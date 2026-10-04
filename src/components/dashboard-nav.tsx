@@ -44,6 +44,7 @@ import {
   moveMessagesToCustomFolder,
   moveMessagesToSystemFolder,
 } from "./dashboard-nav-utils";
+import { NavContextMenu } from "./nav-context-menu";
 import { NavSectionHeader, useSectionOpen } from "./nav-section-header";
 import { ReorderableList } from "./reorderable-list";
 import { readStorage, writeStorage } from "./reorderable-list-utils";
@@ -228,7 +229,17 @@ export function DashboardNav({ className }: { className?: string }) {
         storageKey="mailflare:nav:layout"
         enabled={!minimal}
         lists={[
-          { id: "main", items: mainLinks.map((link) => ({ id: link.href!, node: <NavItem link={link} /> })) },
+          {
+            id: "main",
+            items: mainLinks.map((link) => ({
+              id: link.href!,
+              node: link.href === "/inbox" ? (
+                <NavContextMenu href={link.href} label={link.label ?? "Inbox"} mailboxId={selectedMailbox?.id} unread={link.count}>
+                  <NavItem link={link} />
+                </NavContextMenu>
+              ) : <NavItem link={link} />,
+            })),
+          },
           {
             id: "more",
             before: minimal ? undefined : <NavToggle expanded={moreOpen} onClick={toggleMore} />,
@@ -326,19 +337,35 @@ export function DashboardNav({ className }: { className?: string }) {
           items: folders.map((folder) => ({
             id: folder.id,
             node: (
-              <NavItem
-                wrap
-                link={{
-                  href: `/folders/${folder.id}`,
-                  label: folder.name,
-                  icon: Folder,
-                  preloadMessages: true,
-                  iconColor: folder.color,
-                  count: counts.customFolders[folder.id]?.unread,
-                  onMessageDrop: (messageIds: string[]) =>
-                    void moveMessagesToCustomFolder(messageIds, folder.id),
-                }}
-              />
+              <NavContextMenu
+                href={`/folders/${folder.id}`}
+                label={folder.name}
+                mailboxId={selectedMailbox?.id}
+                unread={counts.customFolders[folder.id]?.unread}
+                folder={folder}
+                onFolderChange={(next) =>
+                  setFolders((items) =>
+                    items
+                      .map((item) => (item.id === next.id ? { ...item, ...next } : item))
+                      .sort((a, b) => a.name.localeCompare(b.name)),
+                  )
+                }
+                onFolderDelete={(folderId) => setFolders((items) => items.filter((item) => item.id !== folderId))}
+              >
+                <NavItem
+                  wrap
+                  link={{
+                    href: `/folders/${folder.id}`,
+                    label: folder.name,
+                    icon: Folder,
+                    preloadMessages: true,
+                    iconColor: folder.color,
+                    count: counts.customFolders[folder.id]?.unread,
+                    onMessageDrop: (messageIds: string[]) =>
+                      void moveMessagesToCustomFolder(messageIds, folder.id),
+                  }}
+                />
+              </NavContextMenu>
             ),
           })),
         }]}

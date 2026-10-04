@@ -1,4 +1,71 @@
-<img src="/public/icon-96.png" alt="Mailflare" width="72" />
+<img src="/public/icon-96.png" alt="Pillcrow Mail" width="72" />
+
+# Pillcrow Mail
+
+Pillcrow's fork of [Mailflare](https://github.com/hieunc229/mailflare), used to run branded inboxes on our clients' own domains. Each client gets their own install in their own Cloudflare account. It shows Pillcrow branding until an admin sets the client's name and icon under **Admin → Branding**.
+
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/NullF0rest/mailflare)
+
+### A client's install
+
+Several clients can share one Cloudflare account (the account that holds their domains). Each install gets its own Worker (`mail-<slug>`), D1 database, R2 bucket, queues and rate-limit namespaces. Its routing rules target that Worker through `CF_EMAIL_WORKER_NAME`.
+
+```bash
+# 1. Write the config and see which resources to create
+node scripts/pillcrow-client.mjs leon --name "LEON Mail" --domain mail.leonband.uk
+npx wrangler d1 create mail-leon            # note the database id
+npx wrangler r2 bucket create mail-leon-raw
+npx wrangler queues create mail-leon-inbound
+npx wrangler queues create mail-leon-outbound
+npx wrangler queues create mail-leon-agent
+
+# 2. Regenerate with the id, deploy, and set the runtime token
+node scripts/pillcrow-client.mjs leon --d1-id <id> --name "LEON Mail" --domain mail.leonband.uk
+WRANGLER_CONFIG=./wrangler.client-leon.jsonc npm run deploy
+npx wrangler secret put CF_TOKEN --name mail-leon
+```
+
+Before deploying, turn on R2 in the account (Workers Paid does not turn it on) and create the runtime token `CF_TOKEN`. Give it two policies:
+
+- **The client's zone:** DNS Edit, Zone Read, Zone Settings Edit and Email Routing Rules Edit. Without Zone Settings Edit, connecting the domain fails with a 403 on `/email/routing/dns`.
+- **The whole account:** Email Routing Addresses Edit, plus Email Sending Edit if the install sends through Cloudflare (needs Workers Paid).
+
+When the next client's zone is added, edit the same token to cover it. Editing a token keeps its secret, so the Worker secret stays valid.
+
+Then open `https://mail.leonband.uk/setup`. The generated `wrangler.client-<slug>.jsonc` is gitignored because it holds account ids. Keep a copy somewhere private. The script also takes `--accent`, `--accent-dark`, `--icon-url`, `--background` and `--background-dark` and writes them as the variables below.
+
+### Branding a client's install
+
+Set these as variables on the Worker (Settings → Variables), or in `.env` for Docker. All are optional; anything unset falls back to Pillcrow's brand.
+
+| Variable | What it sets | Example |
+| --- | --- | --- |
+| `BRAND_NAME` | The name in the sidebar, sign-in page, tab title and system emails | `LEON Mail` |
+| `BRAND_ICON_URL` | App icon and favicon: an https URL, or a path under `public/` | `https://leonband.uk/icon.png` |
+| `BRAND_ACCENT` | Buttons, links, selection and tints in the light theme | `e63946` |
+| `BRAND_ACCENT_DARK` | The same in the dark theme (defaults to `BRAND_ACCENT`); pick a lighter shade | `ff8a94` |
+| `BRAND_BACKGROUND` | Page background in the light theme | `faf7f2` |
+| `BRAND_BACKGROUND_DARK` | Page background in the dark theme | `141414` |
+
+Colours are hex, with or without `#`. In a dotenv file, quote a value that keeps the `#`, or it is read as a comment. A name or icon set under **Admin → Branding** takes precedence over the variables. Colours apply within five minutes of a change (`/api/branding/theme` is cached that long).
+
+### Changes from upstream
+
+This is a modified version of Mailflare, licensed under the same AGPL-3.0 (see [LICENSE](LICENSE)). Changes made by Pillcrow, starting 2026-10-04:
+
+- The default name, description, app icon, favicon and accent colour are Pillcrow's (`src/lib/branding/defaults.ts`, `public/`).
+- Name, icon and colours can be set per install with `BRAND_*` env vars (`src/lib/branding/env.ts`, served as a stylesheet from `/api/branding/theme`).
+- There is no paid tier. Every install has the Team plan's features (custom branding, accounts, shared mailboxes, forwarding, booking hosts) without a key (`src/lib/licenses/service.ts`, `src/lib/mailboxes/access-utils.ts`). The Licenses page, the licence API routes, the Paymug client and the upgrade badge are removed. The `license_settings` table stays so upstream migrations still apply.
+- The sidebar footer credits Pillcrow and Mailflare, and links to this repository's source, as AGPL §13 requires.
+- System mail (password resets) falls back to the branded app name as the sender name.
+- The Email Routing target is `CF_EMAIL_WORKER_NAME` rather than a fixed `mailflare` (`src/lib/cloudflare-api-utils.ts`), `vite.config.ts` reads `WRANGLER_CONFIG`, and `scripts/pillcrow-client.mjs` writes a per-client config, so installs can share an account.
+- `deploy-update.yml` merges upstream instead of replacing the tree, so updates keep these patches. A conflict fails the run so it can be merged by hand.
+- The home page is the install's front door: its icon and name over a slow light in the brand accent, with the sign-in form (and the second-factor step) on the page itself (`src/app/page.tsx`, `src/app/home-sign-in.tsx`). The product pitch and its mock inbox are gone.
+- Right-click (or long-press on touch) opens a menu on a message row, a selection, the Inbox and folders in the sidebar, an address in the reader and an attachment (`src/components/ui/context-menu.tsx`). Moving mail shows a snackbar with Undo (`Z`) when every moved row came from the same place (`src/components/ui/toaster.tsx`, `src/components/messages/message-undo-utils.ts`). Folders can be renamed, recoloured and deleted (`PATCH`/`DELETE /api/folders/[folderId]`), and a folder or the Inbox can be marked read in one go (`POST /api/messages/read-all`).
+
+Keep the patch small so upstream merges stay clean. Everything below is upstream's README.
+
+---
 
 # Mailflare
 

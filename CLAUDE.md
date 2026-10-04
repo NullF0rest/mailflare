@@ -140,6 +140,9 @@ The admin overview dispatches `deploy-update.yml` (constant in `src/app/api/admi
 - API routes return `NextResponse.json({ error: "..." }, { status })` for failures; there is no shared error envelope helper.
 - UI is Tailwind v4 + shadcn/Radix primitives in `src/components/ui/`. `DialogContent` sets no max height, so a tall dialog overflows the viewport with an unreachable submit button — add `max-h-[calc(100vh-4rem)] overflow-y-auto` on any dialog with more than a few fields.
 - `cloudflare-env.d.ts` is generated (500KB) — regenerate with `cf-typegen`, never hand-edit.
+- Right-click menus use `src/components/ui/context-menu.tsx` (Radix ContextMenu). Put `data-[state=open]:bg-neutral-100` on the trigger row so the row stays lit while its menu is open; an arbitrary hex there would not flip in dark mode. Menus sit at `z-[160]`, above the snackbar's `z-[150]`. Long lists render the menu content only while open (see `MessageRowContextMenu`), so per-row hooks never run for closed rows. The sidebar blocks touch long-press on its triggers because the reorderable list already uses it.
+- One snackbar for the dashboard: `showToast` / `showErrorToast` in `src/components/ui/toaster-utils.ts`, rendered once by `DashboardToaster` in the dashboard layout. A move offers Undo only through `announceMessageMove`, and only when `getUndoTarget` finds a single origin; spam and not-spam train the filter and never offer Undo.
+- Renaming, recolouring or deleting a folder dispatches `mailflare:folders-changed`, which `useMailboxFolders` and `useCustomFolderConfig` refetch on.
 
 <!-- BEGIN:nextjs-agent-rules -->
 

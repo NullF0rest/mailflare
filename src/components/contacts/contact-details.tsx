@@ -11,6 +11,7 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { AddressContextMenu } from "./address-context-menu";
 import { ContactAvatarForm } from "./contact-avatar-form";
 import { Label } from "@/components/ui/label";
 import type { ContactDetailsRecord, ContactDetailsTriggerProps } from "./contact-details-types";
@@ -88,13 +89,15 @@ export function ContactDetailsTrigger({
 
 	return (
 		<>
-			<button
-				type="button"
-				onClick={() => handleOpenChange(true)}
-				className={`${className ?? ""} rounded-sm text-left hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200`}
-			>
-				{shownName}
-			</button>
+			<AddressContextMenu mailboxId={mailboxId} address={address} name={name} onEditContact={() => handleOpenChange(true)}>
+				<button
+					type="button"
+					onClick={() => handleOpenChange(true)}
+					className={`${className ?? ""} rounded-sm text-left hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200 data-[state=open]:bg-neutral-100`}
+				>
+					{shownName}
+				</button>
+			</AddressContextMenu>
 			<Dialog open={open} onOpenChange={handleOpenChange}>
 				<DialogContent>
 					<DialogHeader>

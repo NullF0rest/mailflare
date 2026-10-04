@@ -3,15 +3,20 @@ import { getDb } from "@/db";
 import { appSettings } from "@/db/schema";
 import type { Branding } from "./types";
 import { getLicenseEntitlements } from "@/lib/licenses/service";
+import { DEFAULT_APP_NAME as PILLCROW_APP_NAME, UPSTREAM_APP_NAME } from "./defaults";
+import { readBrandEnv } from "./env";
 
 export const APP_SETTINGS_ID = "default";
-export const DEFAULT_APP_NAME = "Mailflare";
+export const DEFAULT_APP_NAME = PILLCROW_APP_NAME;
 export const BRANDING_ICON_KEY = "branding/app-icon";
 
 export async function getBranding(env: CloudflareEnv): Promise<Branding> {
+	// Pillcrow fork: Admin → Branding wins, then the BRAND_* env vars, then Pillcrow's defaults.
+	const brand = readBrandEnv(env);
+	const envName = brand.name ?? DEFAULT_APP_NAME;
 	const entitlements = await getLicenseEntitlements(env);
 	if (!entitlements.canCustomizeBranding) {
-		return { appName: DEFAULT_APP_NAME, hasCustomIcon: false, canCustomizeBranding: false };
+		return { appName: envName, hasCustomIcon: false, canCustomizeBranding: false };
 	}
 
 	try {
@@ -21,12 +26,12 @@ export async function getBranding(env: CloudflareEnv): Promise<Branding> {
 			.where(eq(appSettings.id, APP_SETTINGS_ID))
 			.limit(1);
 		return {
-			appName: settings?.appName || DEFAULT_APP_NAME,
+			appName: settings?.appName && settings.appName !== UPSTREAM_APP_NAME ? settings.appName : envName,
 			hasCustomIcon: !!settings?.iconKey,
 			canCustomizeBranding: true,
 		};
 	} catch {
-		return { appName: DEFAULT_APP_NAME, hasCustomIcon: false, canCustomizeBranding: true };
+		return { appName: envName, hasCustomIcon: false, canCustomizeBranding: true };
 	}
 }
 
