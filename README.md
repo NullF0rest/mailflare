@@ -25,6 +25,13 @@ WRANGLER_CONFIG=./wrangler.client-leon.jsonc npm run deploy
 npx wrangler secret put CF_TOKEN --name mail-leon
 ```
 
+Before deploying, turn on R2 in the account (Workers Paid does not turn it on) and create the runtime token `CF_TOKEN`. Give it two policies:
+
+- **The client's zone:** DNS Edit, Zone Read, Zone Settings Edit and Email Routing Rules Edit. Without Zone Settings Edit, connecting the domain fails with a 403 on `/email/routing/dns`.
+- **The whole account:** Email Routing Addresses Edit, plus Email Sending Edit if the install sends through Cloudflare (needs Workers Paid).
+
+When the next client's zone is added, edit the same token to cover it. Editing a token keeps its secret, so the Worker secret stays valid.
+
 Then open `https://mail.leonband.uk/setup`. The generated `wrangler.client-<slug>.jsonc` is gitignored because it holds account ids. Keep a copy somewhere private. The script also takes `--accent`, `--accent-dark`, `--icon-url`, `--background` and `--background-dark` and writes them as the variables below.
 
 ### Branding a client's install
