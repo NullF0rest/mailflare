@@ -48,12 +48,13 @@ export async function getLicenseEntitlements(env: CloudflareEnv): Promise<Licens
 		// TODO: confirm Paymug's exact feature identifiers when they are documented; plan is authoritative meanwhile.
 		return {
 			plan: status.plan,
-			canCustomizeBranding: status.active && (status.plan === "pro" || status.plan === "team"),
+			// Pillcrow fork: per-client branding is not license-gated.
+			canCustomizeBranding: true,
 			canManageAccounts: status.active && status.plan === "team",
 			canForwardEmail: status.active && (status.plan === "pro" || status.plan === "team"),
 		};
 	} catch {
-		return { plan: "community", canCustomizeBranding: false, canManageAccounts: false, canForwardEmail: false };
+		return { plan: "community", canCustomizeBranding: true, canManageAccounts: false, canForwardEmail: false };
 	}
 }
 

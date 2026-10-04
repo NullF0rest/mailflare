@@ -1,4 +1,40 @@
-<img src="/public/icon-96.png" alt="Mailflare" width="72" />
+<img src="/public/icon-96.png" alt="Pillcrow Mail" width="72" />
+
+# Pillcrow Mail
+
+Pillcrow's fork of [Mailflare](https://github.com/hieunc229/mailflare), used to run branded inboxes on our clients' own domains. Each client gets their own install in their own Cloudflare account. It shows Pillcrow branding until an admin sets the client's name and icon under **Admin → Branding**.
+
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/NullF0rest/pillcrow-mail)
+
+### Branding a client's install
+
+Set these as variables on the Worker (Settings → Variables), or in `.env` for Docker. All are optional; anything unset falls back to Pillcrow's brand.
+
+| Variable | What it sets | Example |
+| --- | --- | --- |
+| `BRAND_NAME` | The name in the sidebar, sign-in page, tab title and system emails | `LEON Mail` |
+| `BRAND_ICON_URL` | App icon and favicon: an https URL, or a path under `public/` | `https://leonband.uk/icon.png` |
+| `BRAND_ACCENT` | Buttons, links, selection and tints in the light theme | `e63946` |
+| `BRAND_ACCENT_DARK` | The same in the dark theme (defaults to `BRAND_ACCENT`); pick a lighter shade | `ff8a94` |
+| `BRAND_BACKGROUND` | Page background in the light theme | `faf7f2` |
+| `BRAND_BACKGROUND_DARK` | Page background in the dark theme | `141414` |
+
+Colours are hex, with or without `#`. In a dotenv file, quote a value that keeps the `#`, or it is read as a comment. A name or icon set under **Admin → Branding** takes precedence over the variables. Colours apply within five minutes of a change (`/api/branding/theme` is cached that long).
+
+### Changes from upstream
+
+This is a modified version of Mailflare, licensed under the same AGPL-3.0 (see [LICENSE](LICENSE)). Changes made by Pillcrow, starting 2026-10-04:
+
+- The default name, description, app icon, favicon and accent colour are Pillcrow's (`src/lib/branding/defaults.ts`, `public/`).
+- Name, icon and colours can be set per install with `BRAND_*` env vars (`src/lib/branding/env.ts`, served as a stylesheet from `/api/branding/theme`).
+- Custom branding (app name and icon) works without a Pro/Team key (`src/lib/licenses/service.ts`). Accounts, shared mailboxes and forwarding are still license-gated as upstream ships them.
+- The sidebar footer credits Pillcrow and Mailflare, and links to this repository's source, as AGPL §13 requires.
+- System mail (password resets) falls back to the branded app name as the sender name.
+- `deploy-update.yml` merges upstream instead of replacing the tree, so updates keep these patches. A conflict fails the run so it can be merged by hand.
+
+Keep the patch small so upstream merges stay clean. Everything below is upstream's README.
+
+---
 
 # Mailflare
 

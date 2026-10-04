@@ -21,3 +21,12 @@ CF_TOKEN=your_api_token_with_zone_email_permissions
 # AWS_REGION=us-east-1
 # Receiving through Resend or SES needs a public HTTPS address.
 # APP_URL=https://mail.example.com
+
+# Pillcrow Mail: this install's brand. Admin > Branding overrides the name and icon.
+# Colours are hex with or without "#"; quote them if you keep the "#", or it reads as a comment.
+# BRAND_NAME=LEON Mail
+# BRAND_ICON_URL=https://example.com/icon.png
+# BRAND_ACCENT=5640aa
+# BRAND_ACCENT_DARK=a899e3
+# BRAND_BACKGROUND=f6f8fc
+# BRAND_BACKGROUND_DARK=202124

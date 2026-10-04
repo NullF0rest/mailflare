@@ -13,7 +13,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const branding = await getHomeBranding();
   return {
     title: branding.appName,
-    icons: { icon: branding.hasCustomIcon ? "/api/branding/icon" : "/icon-96.png" },
+    icons: { icon: "/api/branding/icon" },
   };
 }
 
@@ -29,7 +29,7 @@ export default async function HomePage() {
           className="flex items-center gap-3"
           aria-label={`${branding.appName} home`}
         >
-          <img src={branding.hasCustomIcon ? "/api/branding/icon" : "/icon-96.png"} height={32} width={32} alt="" />
+          <img src="/api/branding/icon" height={32} width={32} alt="" />
           <span className="text-base font-semibold tracking-tight">
             {branding.appName}
           </span>

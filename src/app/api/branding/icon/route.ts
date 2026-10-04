@@ -4,12 +4,18 @@ import { appSettings } from "@/db/schema";
 import { APP_SETTINGS_ID } from "@/lib/branding/service";
 import { getEnvAsync } from "@/lib/cloudflare";
 import { getLicenseEntitlements } from "@/lib/licenses/service";
+import { readBrandEnv } from "@/lib/branding/env";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 async function getDefaultIcon(env: CloudflareEnv): Promise<Response> {
-	const asset = await env.ASSETS.fetch("https://mailflare.local/icon-96.png");
+	// Pillcrow fork: BRAND_ICON_URL, when set, stands in for the packaged icon.
+	const iconUrl = readBrandEnv(env).iconUrl;
+	if (iconUrl && !iconUrl.startsWith("/")) {
+		return new Response(null, { status: 302, headers: { Location: iconUrl, "Cache-Control": "no-cache" } });
+	}
+	const asset = await env.ASSETS.fetch(`https://mailflare.local${iconUrl ?? "/icon-96.png"}`);
 	return new Response(await asset.arrayBuffer(), {
 		status: asset.status,
 		statusText: asset.statusText,

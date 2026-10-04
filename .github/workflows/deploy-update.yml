@@ -50,14 +50,14 @@ jobs:
           upstream_ref="upstream/${upstream_branch}"
           echo "Replacing ${GITHUB_REF_NAME} with ${upstream_ref}."
 
-          # Keep the installation repository's commit history while replacing
-          # its complete tracked tree with the current upstream tree.
-          git read-tree --reset -u "${upstream_ref}"
-          if git diff --cached --quiet; then
-            echo "Repository is already up to date."
-            exit 0
+          # Pillcrow fork: MERGE upstream rather than replacing the tree, which
+          # would silently drop the fork's branding patches on every update.
+          # A conflict fails the run; resolve it by hand in a pull request.
+          if ! git merge --no-edit -m "Update Mailflare from ${UPDATE_SOURCE_REPOSITORY}@${upstream_branch}" "${upstream_ref}"; then
+            git merge --abort || true
+            echo "::error::Upstream changes conflict with the Pillcrow patches. Merge ${upstream_ref} by hand."
+            exit 1
           fi
-          git commit -m "Update Mailflare from ${UPDATE_SOURCE_REPOSITORY}@${upstream_branch}"
 
       - name: Push update
         run: |

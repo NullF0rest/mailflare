@@ -4,6 +4,7 @@ import { domains, mailboxes, users } from "@/db/schema";
 import { formatEmailAddress } from "@/lib/email/address";
 import { getOutboundProviderConfig, sendThroughProvider } from "@/lib/email/outbound-provider";
 import type { SystemMailInput } from "@/lib/email/system-mail-types";
+import { getBranding } from "@/lib/branding/service";
 
 /**
  * Mail the application sends on its own behalf (password resets). It goes
@@ -63,5 +64,5 @@ export async function pickSystemSender(
 	const usable = rows.filter((row) => row.provider !== "cloudflare" || row.cloudflareSending);
 	const chosen = usable.find((row) => row.role === "admin") ?? usable[0];
 	if (!chosen) return null;
-	return { address: `${chosen.localPart}@${chosen.hostname}`, name: chosen.displayName ?? "Mailflare" };
+	return { address: `${chosen.localPart}@${chosen.hostname}`, name: chosen.displayName ?? (await getBranding(env)).appName };
 }

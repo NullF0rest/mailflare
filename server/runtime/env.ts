@@ -67,6 +67,12 @@ export function createNodeRuntime(): NodeRuntime {
 		MAILFLARE_RUNTIME: "node",
 		APP_URL: optional("APP_URL")?.replace(/\/$/, ""),
 		INBOUND_WEBHOOK_SECRET: optional("INBOUND_WEBHOOK_SECRET"),
+		BRAND_NAME: optional("BRAND_NAME"),
+		BRAND_ICON_URL: optional("BRAND_ICON_URL"),
+		BRAND_ACCENT: optional("BRAND_ACCENT"),
+		BRAND_ACCENT_DARK: optional("BRAND_ACCENT_DARK"),
+		BRAND_BACKGROUND: optional("BRAND_BACKGROUND"),
+		BRAND_BACKGROUND_DARK: optional("BRAND_BACKGROUND_DARK"),
 	} as unknown as CloudflareEnv;
 	realtime.bindEnv(env);
 

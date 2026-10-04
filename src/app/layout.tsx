@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { Providers } from "@/components/providers";
 import { sidebarBootstrapScript } from "@/components/sidebar-state-utils";
 import { themeBootstrapScript } from "@/components/theme-utils";
+import { DEFAULT_APP_DESCRIPTION, DEFAULT_APP_NAME } from "@/lib/branding/defaults";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -16,8 +17,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-	title: "Mailflare",
-	description: "Multi-tenant email on Cloudflare",
+	title: DEFAULT_APP_NAME,
+	description: DEFAULT_APP_DESCRIPTION,
 	icons: { icon: "/api/branding/icon" },
 	robots: {
 		index: false,
@@ -42,6 +43,8 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
 				<script dangerouslySetInnerHTML={{ __html: sidebarBootstrapScript }} />
 				<script dangerouslySetInnerHTML={{ __html: themeBootstrapScript }} />
 				<link rel="icon" href="/api/branding/icon"></link>
+				{/* Pillcrow fork: accent and ground colours from the BRAND_* env vars. */}
+				<link rel="stylesheet" href="/api/branding/theme" />
 			</head>
 			<body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
 				<Providers>{children}</Providers>
