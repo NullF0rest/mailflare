@@ -4,6 +4,8 @@ import { Providers } from "@/components/providers";
 import { sidebarBootstrapScript } from "@/components/sidebar-state-utils";
 import { themeBootstrapScript } from "@/components/theme-utils";
 import { DEFAULT_APP_DESCRIPTION, DEFAULT_APP_NAME } from "@/lib/branding/defaults";
+import { readBrandEnv } from "@/lib/branding/env";
+import { getEnv } from "@/lib/cloudflare";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -16,7 +18,7 @@ const geistMono = Geist_Mono({
 	subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
+const baseMetadata: Metadata = {
 	title: DEFAULT_APP_NAME,
 	description: DEFAULT_APP_DESCRIPTION,
 	icons: { icon: "/api/branding/icon" },
@@ -35,6 +37,12 @@ export const metadata: Metadata = {
 		},
 	},
 };
+
+// Pillcrow fork: the served title is the install's BRAND_NAME, so a link preview names the
+// client's app before the branding provider runs.
+export function generateMetadata(): Metadata {
+	return { ...baseMetadata, title: readBrandEnv(getEnv()).name ?? DEFAULT_APP_NAME };
+}
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
 	return (
