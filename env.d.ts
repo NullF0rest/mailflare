@@ -36,6 +36,8 @@ interface CloudflareEnv {
 	CF_ACCOUNT_ID?: string;
 	/** Public origin of this install (https://mail.example.com) when it sits behind a proxy. */
 	APP_URL?: string;
+	/** Pillcrow fork: this install's Worker name, the target of its Email Routing rules. */
+	CF_EMAIL_WORKER_NAME?: string;
 	/** Pillcrow fork: the install's brand (see src/lib/branding/env.ts). */
 	BRAND_NAME?: string;
 	BRAND_ICON_URL?: string;

@@ -6,6 +6,27 @@ Pillcrow's fork of [Mailflare](https://github.com/hieunc229/mailflare), used to 
 
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/NullF0rest/pillcrow-mail)
 
+### A client's install
+
+Several clients can share one Cloudflare account (the account that holds their domains). Each install gets its own Worker (`mail-<slug>`), D1 database, R2 bucket, queues and rate-limit namespaces. Its routing rules target that Worker through `CF_EMAIL_WORKER_NAME`.
+
+```bash
+# 1. Write the config and see which resources to create
+node scripts/pillcrow-client.mjs leon --name "LEON Mail" --domain mail.leonband.uk
+npx wrangler d1 create mail-leon            # note the database id
+npx wrangler r2 bucket create mail-leon-raw
+npx wrangler queues create mail-leon-inbound
+npx wrangler queues create mail-leon-outbound
+npx wrangler queues create mail-leon-agent
+
+# 2. Regenerate with the id, deploy, and set the runtime token
+node scripts/pillcrow-client.mjs leon --d1-id <id> --name "LEON Mail" --domain mail.leonband.uk
+WRANGLER_CONFIG=./wrangler.client-leon.jsonc npm run deploy
+npx wrangler secret put CF_TOKEN --name mail-leon
+```
+
+Then open `https://mail.leonband.uk/setup`. The generated `wrangler.client-<slug>.jsonc` is gitignored because it holds account ids. Keep a copy somewhere private. The script also takes `--accent`, `--accent-dark`, `--icon-url`, `--background` and `--background-dark` and writes them as the variables below.
+
 ### Branding a client's install
 
 Set these as variables on the Worker (Settings → Variables), or in `.env` for Docker. All are optional; anything unset falls back to Pillcrow's brand.
@@ -30,6 +51,7 @@ This is a modified version of Mailflare, licensed under the same AGPL-3.0 (see [
 - Custom branding (app name and icon) works without a Pro/Team key (`src/lib/licenses/service.ts`). Accounts, shared mailboxes and forwarding are still license-gated as upstream ships them.
 - The sidebar footer credits Pillcrow and Mailflare, and links to this repository's source, as AGPL §13 requires.
 - System mail (password resets) falls back to the branded app name as the sender name.
+- The Email Routing target is `CF_EMAIL_WORKER_NAME` rather than a fixed `mailflare` (`src/lib/cloudflare-api-utils.ts`), `vite.config.ts` reads `WRANGLER_CONFIG`, and `scripts/pillcrow-client.mjs` writes a per-client config, so installs can share an account.
 - `deploy-update.yml` merges upstream instead of replacing the tree, so updates keep these patches. A conflict fails the run so it can be merged by hand.
 
 Keep the patch small so upstream merges stay clean. Everything below is upstream's README.
