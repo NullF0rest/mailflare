@@ -1,195 +1,68 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { heroMessages, sidebarItems } from "./utils";
-import { Inbox, Mail, Search, ShieldCheck } from "lucide-react";
+import type { CSSProperties } from "react";
+import { cookies } from "next/headers";
+import { hasAdminAccount } from "@/lib/auth/setup";
+import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth/session";
+import { PILLCROW_URL, SOURCE_URL } from "@/lib/branding/defaults";
+import { getEnv } from "@/lib/cloudflare";
 import { getHomeBranding } from "./home-server-utils";
 import { HomeAuthProvider } from "./home-auth";
-import { HomeHeaderActions } from "./home-header-actions";
-import { HomeHeroActions } from "./home-hero-actions";
+import { HomeSignIn } from "./home-sign-in";
 
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const branding = await getHomeBranding();
-  return {
-    title: branding.appName,
-    icons: { icon: "/api/branding/icon" },
-  };
+	const branding = await getHomeBranding();
+	return {
+		title: branding.appName,
+		icons: { icon: "/api/branding/icon" },
+	};
 }
 
+// Pillcrow fork: the home page is the client's front door, not a product pitch. A lit mark, the
+// install's name and the sign-in form, over a slow light that takes the brand accent.
 export default async function HomePage() {
-  const branding = await getHomeBranding();
+	const branding = await getHomeBranding();
+	const env = getEnv();
+	const [needsSetup, signedIn] = await Promise.all([
+		hasAdminAccount(env).then((hasAdmin) => !hasAdmin).catch(() => false),
+		cookies()
+			.then((store) => getUserFromSession(env, store.get(SESSION_COOKIE)?.value))
+			.then((user) => (user && !user.disabled ? { name: user.name, email: user.email } : null))
+			.catch(() => null),
+	]);
 
-  return (
-    <HomeAuthProvider>
-    <div className="min-h-dvh bg-[#f6f8fc] text-neutral-900">
-      <header className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        <Link
-          href="/"
-          className="flex items-center gap-3"
-          aria-label={`${branding.appName} home`}
-        >
-          <img src="/api/branding/icon" height={32} width={32} alt="" />
-          <span className="text-base font-semibold tracking-tight">
-            {branding.appName}
-          </span>
-        </Link>
+	return (
+		<HomeAuthProvider>
+			<div className="relative isolate flex min-h-dvh flex-col overflow-hidden bg-background text-neutral-900">
+				<div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
+					<div className="pc-home-grid absolute inset-0" />
+					<div className="pc-home-orb pc-home-orb-a" />
+					<div className="pc-home-orb pc-home-orb-b" />
+					<div className="pc-home-orb pc-home-orb-c" />
+				</div>
 
-        {/* <nav className="hidden items-center gap-6 text-sm font-medium text-neutral-600 md:flex">
-					{landingNavItems.map((item) => (
-						<a key={item.href} href={item.href} className="transition-colors hover:text-neutral-950">
-							{item.label}
-						</a>
-					))}
-				</nav> */}
-
-        <div className="flex items-center gap-2">
-          <HomeHeaderActions />
-        </div>
-      </header>
-
-      <main>
-        <section className="mx-auto grid max-w-7xl grid-cols-1 gap-10 px-4 pb-12 pt-8 sm:px-6 md:pt-16 lg:grid-cols-[0.86fr_1.14fr] lg:px-8">
-          <div className="flex max-w-2xl flex-col justify-center">
-            <div className="mb-6 flex w-fit items-center gap-2 text-sm font-medium text-blue-800">
-              <ShieldCheck className="h-4 w-4" />
-              Cloudflare-native email operations
-            </div>
-            <h1 className="max-w-[12ch] text-5xl font-semibold leading-[0.96] tracking-tight text-neutral-950 sm:text-6xl lg:text-7xl">
-              Mailboxes that feel like your inbox.
-            </h1>
-            <p className="mt-6 max-w-xl text-lg leading-8 text-neutral-600">
-              Add domains, route inbound mail, send through API keys, and manage
-              your mailboxes from one quiet workspace built around the message list.
-            </p>
-            <HomeHeroActions />
-          </div>
-
-          <div className="relative min-h-[520px] overflow-hidden rounded-[2rem] border border-neutral-100 shadow-[0_24px_70px_-45px_rgba(30,64,175,0.55)]">
-            <div className="grid h-full min-h-[520px] grid-cols-[176px_1fr] bg-white">
-              <aside className="hidden flex-col gap-2 bg-[#f6f8fc] px-3 py-5 sm:flex">
-                <div className="mb-4 flex items-center gap-3 px-3 text-neutral-700">
-                  <Inbox className="h-5 w-5" />
-                  <span className="font-semibold">Mail</span>
-                </div>
-                <div className="mb-3 flex h-12 w-fit items-center gap-2 rounded-2xl bg-blue-100 px-5 text-sm font-semibold text-blue-950 shadow-sm">
-                  <Mail className="h-4 w-4" />
-                  Compose
-                </div>
-                {sidebarItems.map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <div
-                      key={item.label}
-                      className={`flex h-9 items-center justify-between rounded-r-full px-3 text-sm font-medium ${
-                        item.active
-                          ? "bg-blue-100 text-blue-950"
-                          : "text-neutral-600"
-                      }`}
-                    >
-                      <span className="flex items-center gap-3">
-                        <Icon className="h-4 w-4" />
-                        {item.label}
-                      </span>
-                      {item.count && (
-                        <span className="text-xs text-blue-800">
-                          {item.count}
-                        </span>
-                      )}
-                    </div>
-                  );
-                })}
-              </aside>
-
-              <div className="col-span-2 flex min-w-0 flex-col sm:col-span-1">
-                <div className="flex h-16 items-center gap-3 bg-[#f6f8fc] px-4">
-                  <div className="flex h-12 flex-1 items-center gap-3 rounded-full bg-[#eaf1fb] px-4 text-neutral-600">
-                    <Search className="h-5 w-5" />
-                    <span className="text-[15px]">Search mail</span>
-                  </div>
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white">
-                    <Mail className="h-4 w-4" />
-                  </div>
-                </div>
-
-                <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-tl-3xl bg-white">
-                  <div className="flex h-14 items-center justify-between border-b border-neutral-200 px-6">
-                    <div className="flex items-center gap-3">
-                      <h2 className="text-xl font-medium text-neutral-800">
-                        Priority inbox
-                      </h2>
-                      <span className="rounded-full bg-neutral-100 px-2.5 py-1 text-xs font-medium text-neutral-600">
-                        18
-                      </span>
-                    </div>
-                    <span className="hidden text-sm font-medium text-neutral-500 md:inline">
-                      Updated 2 min ago
-                    </span>
-                  </div>
-                  <div className="divide-y divide-neutral-100">
-                    {heroMessages.map((message) => (
-                      <div
-                        key={message.sender}
-                        className="grid min-h-14 grid-cols-[28px_minmax(112px,180px)_1fr_auto] items-center gap-3 px-5 text-sm hover:bg-[#f2f6fc]"
-                      >
-                        <message.icon className="h-4 w-4 text-neutral-300" />
-                        <span className="truncate font-semibold text-neutral-900">
-                          {message.sender}
-                        </span>
-                        <span className="truncate text-neutral-600">
-                          <span className="font-medium text-neutral-900">
-                            {message.subject}
-                          </span>
-                          <span className="hidden text-neutral-500 md:inline">
-                            {" "}
-                            - {message.preview}
-                          </span>
-                        </span>
-                        <span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700">
-                          {message.badge}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* <section id="workflow" className="mx-auto grid max-w-7xl grid-cols-1 gap-6 px-4 pb-16 sm:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:px-8">
-					<div id="api" className="rounded-[1.75rem] bg-white p-6 shadow-sm shadow-neutral-200/50">
-						<div className="mb-6 flex items-center justify-between gap-4">
-							<div>
-								<p className="text-sm font-semibold text-blue-700">Operational view</p>
-								<h2 className="mt-1 text-2xl font-semibold tracking-tight">From DNS to delivery in one place.</h2>
-							</div>
-							<Clock3 className="hidden h-6 w-6 text-neutral-400 sm:block" />
+				<main className="flex flex-1 items-center justify-center px-4 py-12 sm:px-6">
+					<div className="w-full max-w-sm">
+						<div className="pc-home-rise flex flex-col items-center text-center">
+							<span className="pc-home-mark relative flex h-16 w-16 items-center justify-center">
+								<img src="/api/branding/icon" alt="" width={64} height={64} className="h-16 w-16 object-contain drop-shadow-lg" />
+							</span>
+							<h1 className="mt-7 text-3xl font-semibold tracking-tight text-neutral-950 sm:text-4xl">{branding.appName}</h1>
 						</div>
-						<div className="grid gap-4 sm:grid-cols-3">
-							{inboxStats.map((stat) => (
-								<div key={stat.label} className="border-t border-neutral-200 pt-4">
-									<p className="no-font-mono text-2xl font-semibold text-neutral-950">{stat.value}</p>
-									<p className="mt-1 text-sm text-neutral-500">{stat.label}</p>
-								</div>
-							))}
+						<div className="pc-home-rise mt-8" style={{ "--pc-home-delay": "140ms" } as CSSProperties}>
+							<HomeSignIn appName={branding.appName} needsSetup={needsSetup} signedIn={signedIn} />
 						</div>
 					</div>
+				</main>
 
-					<div id="domains" className="rounded-[1.75rem] bg-white p-6 shadow-sm shadow-neutral-200/50">
-						<p className="text-sm font-semibold text-blue-700">Delivery signals</p>
-						<div className="mt-5 space-y-4">
-							{deliverySignals.map((signal) => (
-								<div key={signal} className="flex items-center gap-3 text-sm font-medium text-neutral-700">
-									<CheckCircle2 className="h-5 w-5 text-blue-600" />
-									<span>{signal}</span>
-								</div>
-							))}
-						</div>
-					</div>
-				</section> */}
-      </main>
-    </div>
-    </HomeAuthProvider>
-  );
+				<footer className="pc-home-rise px-4 pb-6 text-center text-[11px] text-neutral-400" style={{ "--pc-home-delay": "280ms" } as CSSProperties}>
+					Powered by{" "}
+					<a href={PILLCROW_URL} target="_blank" rel="noreferrer" className="text-neutral-500 hover:underline">Pillcrow</a>
+					{" · "}built on Mailflare{" · "}
+					<a href={SOURCE_URL} target="_blank" rel="noreferrer" className="text-neutral-500 hover:underline">Source</a>
+				</footer>
+			</div>
+		</HomeAuthProvider>
+	);
 }

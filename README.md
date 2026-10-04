@@ -60,6 +60,7 @@ This is a modified version of Mailflare, licensed under the same AGPL-3.0 (see [
 - System mail (password resets) falls back to the branded app name as the sender name.
 - The Email Routing target is `CF_EMAIL_WORKER_NAME` rather than a fixed `mailflare` (`src/lib/cloudflare-api-utils.ts`), `vite.config.ts` reads `WRANGLER_CONFIG`, and `scripts/pillcrow-client.mjs` writes a per-client config, so installs can share an account.
 - `deploy-update.yml` merges upstream instead of replacing the tree, so updates keep these patches. A conflict fails the run so it can be merged by hand.
+- The home page is the install's front door: its icon and name over a slow light in the brand accent, with the sign-in form (and the second-factor step) on the page itself (`src/app/page.tsx`, `src/app/home-sign-in.tsx`). The product pitch and its mock inbox are gone.
 - Right-click (or long-press on touch) opens a menu on a message row, a selection, the Inbox and folders in the sidebar, an address in the reader and an attachment (`src/components/ui/context-menu.tsx`). Moving mail shows a snackbar with Undo (`Z`) when every moved row came from the same place (`src/components/ui/toaster.tsx`, `src/components/messages/message-undo-utils.ts`). Folders can be renamed, recoloured and deleted (`PATCH`/`DELETE /api/folders/[folderId]`), and a folder or the Inbox can be marked read in one go (`POST /api/messages/read-all`).
 
 Keep the patch small so upstream merges stay clean. Everything below is upstream's README.
