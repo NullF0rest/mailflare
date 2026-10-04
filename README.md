@@ -55,7 +55,7 @@ This is a modified version of Mailflare, licensed under the same AGPL-3.0 (see [
 
 - The default name, description, app icon, favicon and accent colour are Pillcrow's (`src/lib/branding/defaults.ts`, `public/`).
 - Name, icon and colours can be set per install with `BRAND_*` env vars (`src/lib/branding/env.ts`, served as a stylesheet from `/api/branding/theme`).
-- Custom branding (app name and icon) works without a Pro/Team key (`src/lib/licenses/service.ts`). Accounts, shared mailboxes and forwarding are still license-gated as upstream ships them.
+- There is no paid tier. Every install has the Team plan's features (custom branding, accounts, shared mailboxes, forwarding, booking hosts) without a key (`src/lib/licenses/service.ts`, `src/lib/mailboxes/access-utils.ts`). The Licenses page, the licence API routes, the Paymug client and the upgrade badge are removed. The `license_settings` table stays so upstream migrations still apply.
 - The sidebar footer credits Pillcrow and Mailflare, and links to this repository's source, as AGPL §13 requires.
 - System mail (password resets) falls back to the branded app name as the sender name.
 - The Email Routing target is `CF_EMAIL_WORKER_NAME` rather than a fixed `mailflare` (`src/lib/cloudflare-api-utils.ts`), `vite.config.ts` reads `WRANGLER_CONFIG`, and `scripts/pillcrow-client.mjs` writes a per-client config, so installs can share an account.

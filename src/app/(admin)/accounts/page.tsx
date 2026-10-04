@@ -12,7 +12,6 @@ import { Select } from "@/components/ui/select";
 import { authFetch } from "@/lib/auth/client";
 import { ProgressiveAvatarImage } from "@/components/progressive-avatar-image";
 import { getAvatarColorStyle } from "@/lib/avatar-colors";
-import { LicenseRequiredOverlay } from "@/components/license-required-overlay";
 import { List, ListRow } from "@/components/ui/list";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { AccountAliases } from "./account-aliases";
@@ -41,7 +40,6 @@ export default function AccountsPage() {
 	const [saving, setSaving] = useState(false);
 	const [createOpen, setCreateOpen] = useState(false);
 	const [message, setMessage] = useState<string | null>(null);
-	const [teamRequired, setTeamRequired] = useState(false);
 
 	async function loadAccounts() {
 		setAccounts(await fetchAccounts());
@@ -57,7 +55,6 @@ export default function AccountsPage() {
 			setDomainId(data.domains?.[0]?.id ?? "");
 		}).catch((error) => {
 			const text = error instanceof Error ? error.message : "Unable to load accounts";
-			setTeamRequired(/team license/i.test(text));
 			setMessage(text);
 		}).finally(() => setLoading(false));
 	}, []);
@@ -88,8 +85,8 @@ export default function AccountsPage() {
 	}
 
 	return <div className="space-y-6">
-		<div className="flex items-center justify-between gap-4"><div><h1 className="text-2xl md:text-3xl font-medium text-neutral-900">Accounts</h1><p className="mt-2 text-sm text-neutral-500">Manage Team accounts and their inboxes.</p></div>{!teamRequired && canManage && <Button className={mobilePrimaryActionClass} onClick={() => setCreateOpen(true)}><Plus className="h-4 w-4" />New account</Button>}</div>
-		<div className="relative">{teamRequired && <LicenseRequiredOverlay required="Team"><div className="min-h-48 rounded-3xl bg-white" /></LicenseRequiredOverlay>}<List>
+		<div className="flex items-center justify-between gap-4"><div><h1 className="text-2xl md:text-3xl font-medium text-neutral-900">Accounts</h1><p className="mt-2 text-sm text-neutral-500">Manage accounts and their inboxes.</p></div>{canManage && <Button className={mobilePrimaryActionClass} onClick={() => setCreateOpen(true)}><Plus className="h-4 w-4" />New account</Button>}</div>
+		<div className="relative"><List>
 			{loading && <p className="text-sm text-neutral-500">Loading...</p>}
 			{accounts.map((account) => {
 				const locked = !currentUser?.isPrimaryAdmin && account.role === "admin" && account.id !== currentUser?.id;
